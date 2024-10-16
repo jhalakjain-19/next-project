@@ -6,15 +6,15 @@ import "easymde/dist/easymde.min.css";
 import axios from "axios";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-interface IssueForm {
-  title: string;
-  description: string; // Ensure this is spelled correctly
-}
+import { z } from "zod";
+type IssueForm = z.infer<typeof createIssueSchema>;
 
+import { zodResolver } from "@hookform/resolvers/zod";
+import { createIssueSchema } from '@/app/ValidationSchemas'
 const NewIssuePage = () => {
   const router = useRouter();
   // Destructuring from useForm
-  const { register, control, handleSubmit } = useForm<IssueForm>();
+  const { register, control, handleSubmit, formState: { errors } } = useForm<IssueForm>({ resolver: zodResolver(createIssueSchema) });
   const [error, setError] = useState('');
   const onSubmit = async (data: IssueForm) => {
     try {
@@ -37,6 +37,7 @@ const NewIssuePage = () => {
       </Callout.Root>}
       <form className=" space-y-3" onSubmit={handleSubmit(onSubmit)}>
         <TextField.Root aria-label="Title" placeholder="Enter title" {...register('title')} />
+        {errors.title && <p color="red">{errors.title.message}</p>}
         <Controller
           name="description"
           control={control}
@@ -48,6 +49,7 @@ const NewIssuePage = () => {
             />
           )}
         />
+        {errors.description && <p color='red'>{errors.description.message}</p>}
         <Button type="submit">Submit New Issue</Button>
       </form>
     </div>
